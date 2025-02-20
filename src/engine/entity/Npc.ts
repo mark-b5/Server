@@ -163,12 +163,43 @@ export default class Npc extends PathingEntity {
         super.resetPathingEntity();
     }
 
+    // pathToPathingTarget(): void {
+    //     if (!this.target) {
+    //         return;
+    //     }
+
+    //     if (!(this.target instanceof PathingEntity)) {
+    //         this.pathToTarget();
+    //         return;
+    //     }
+
+    //     if (
+    //         !(this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) &&
+    //         Environment.NODE_CLIENT_ROUTEFINDER &&
+    //         CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)
+    //     ) {
+    //         this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
+    //         return;
+    //     }
+
+    //     if (!this.isLastOrNoWaypoint()) {
+    //         return;
+    //     }
+
+    //     if (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) {
+    //         this.queueWaypoint(this.target.followX, this.target.followZ);
+    //         return;
+    //     }
+
+    //     /*if (this.targetX === this.target.x && this.targetZ === this.target.z && !Position.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
+    //             return;
+    //         }*/
+
+    //     this.pathToTarget();
+    // }
+
     updateMovement(repathAllowed: boolean = true): boolean {
         const type = NpcType.get(this.type);
-        if (!this.targetWithinMaxRange()) {
-            this.defaultMode();
-            return false;
-        }
         if (type.moverestrict === MoveRestrict.NOMOVE) {
             return false;
         }
@@ -205,10 +236,6 @@ export default class Npc extends PathingEntity {
     }
 
     pathToTarget(): void {
-        if (!this.targetWithinMaxRange()) {
-            this.defaultMode();
-            return;
-        }
         super.pathToTarget();
     }
 
@@ -422,6 +449,9 @@ export default class Npc extends PathingEntity {
     }
 
     processNpcModes() {
+        if (this.delayed) {
+            return;
+        }
         if (this.targetOp === NpcMode.NULL) {
             this.defaultMode();
         } else if (this.targetOp === NpcMode.NONE) {
@@ -513,7 +543,7 @@ export default class Npc extends PathingEntity {
     }
 
     playerEscapeMode(): void {
-        if (!this.validateTarget()) {
+        if (!this.validateTarget() || !this.targetWithinMaxRange()) {
             this.defaultMode();
             return;
         }
@@ -573,7 +603,7 @@ export default class Npc extends PathingEntity {
     }
 
     playerFollowMode(): void {
-        if (!this.validateTarget()) {
+        if (!this.validateTarget() || !this.targetWithinMaxRange()) {
             this.defaultMode();
             return;
         }
@@ -617,8 +647,6 @@ export default class Npc extends PathingEntity {
             this.defaultMode();
             return;
         }
-        this.clearWaypoints();
-        this.updateMovement(false);
     }
 
     playerFaceCloseMode(): void {
@@ -641,12 +669,10 @@ export default class Npc extends PathingEntity {
             this.defaultMode();
             return;
         }
-        this.clearWaypoints();
-        this.updateMovement(false);
     }
 
     aiMode(): void {
-        if (!this.target || !this.validateTarget() || this.delayed || this.target.level !== this.level) {
+        if (!this.target || !this.validateTarget() || this.target.level !== this.level || !this.targetWithinMaxRange()) {
             this.defaultMode();
             return;
         }

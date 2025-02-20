@@ -202,7 +202,6 @@ export default class Npc extends PathingEntity {
 
     clearInteraction() {
         super.clearInteraction();
-        this.huntTarget = null;
     }
 
     pathToTarget(): void {
@@ -293,7 +292,6 @@ export default class Npc extends PathingEntity {
     setTimer(interval: number) {
         if (interval !== -1) {
             this.timerInterval = interval;
-            this.timerClock = 0;
         }
     }
 
@@ -455,12 +453,17 @@ export default class Npc extends PathingEntity {
 
     defaultMode(): void {
         this.clearInteraction();
-        this.updateMovement(false);
         const type: NpcType = NpcType.get(this.type);
         this.targetOp = type.defaultmode;
         this.lastWanderTick = World.currentTick; // osrs
         this.faceEntity = -1;
         this.masks |= InfoProt.NPC_FACE_ENTITY.id;
+
+        // Reset hunt target
+        this.huntTarget = null;
+
+        // Reset timer interval
+        this.timerInterval = type.timer;
     }
 
     wanderMode(): void {

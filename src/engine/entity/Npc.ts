@@ -37,7 +37,8 @@ import HeroPoints from '#/engine/entity/HeroPoints.js';
 
 import LinkList from '#/util/LinkList.js';
 
-import { CollisionFlag } from '@2004scape/rsmod-pathfinder';
+import { CollisionFlag, CollisionType } from '@2004scape/rsmod-pathfinder';
+import { findNaivePath } from '#/engine/GameMap.js';
 
 import InfoProt from '#/network/rs225/server/prot/InfoProt.js';
 import Visibility from '#/engine/entity/Visibility.js';
@@ -163,50 +164,31 @@ export default class Npc extends PathingEntity {
         super.resetPathingEntity();
     }
 
-    // pathToPathingTarget(): void {
-    //     if (!this.target) {
-    //         return;
-    //     }
+    pathToPathingTarget(): void {
+        if (!this.target) {
+            return;
+        }
 
-    //     if (!(this.target instanceof PathingEntity)) {
-    //         this.pathToTarget();
-    //         return;
-    //     }
+        if (CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
+            this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
+            return;
+        }
 
-    //     if (
-    //         !(this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) &&
-    //         Environment.NODE_CLIENT_ROUTEFINDER &&
-    //         CoordGrid.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)
-    //     ) {
-    //         this.queueWaypoints(findNaivePath(this.level, this.x, this.z, this.target.x, this.target.z, this.width, this.length, this.target.width, this.target.length, 0, CollisionType.NORMAL));
-    //         return;
-    //     }
-
-    //     if (!this.isLastOrNoWaypoint()) {
-    //         return;
-    //     }
-
-    //     if (this.targetOp === ServerTriggerType.APPLAYER3 || this.targetOp === ServerTriggerType.OPPLAYER3) {
-    //         this.queueWaypoint(this.target.followX, this.target.followZ);
-    //         return;
-    //     }
-
-    //     /*if (this.targetX === this.target.x && this.targetZ === this.target.z && !Position.intersects(this.x, this.z, this.width, this.length, this.target.x, this.target.z, this.target.width, this.target.length)) {
-    //             return;
-    //         }*/
-
-    //     this.pathToTarget();
-    // }
+        this.pathToTarget();
+    }
 
     updateMovement(repathAllowed: boolean = true): boolean {
         const type = NpcType.get(this.type);
         if (type.moverestrict === MoveRestrict.NOMOVE) {
             return false;
         }
-        if (repathAllowed && this.target instanceof PathingEntity && !this.interacted && this.walktrigger === -1) {
+        if (repathAllowed) {
             this.pathToPathingTarget();
         }
-        if (this.walktrigger !== -1) {
+
+        const { x, z } = CoordGrid.unpackCoord(this.waypoints[this.waypointIndex]);
+
+        if (this.walktrigger !== -1 && (this.x !== x || this.z !== z)) {
             const type = NpcType.get(this.type);
             const script = ScriptProvider.getByTrigger(ServerTriggerType.AI_QUEUE1 + this.walktrigger, type.id, type.category);
             this.walktrigger = -1;
@@ -220,23 +202,13 @@ export default class Npc extends PathingEntity {
             this.moveSpeed = this.defaultMoveSpeed();
         }
 
-        if (!super.processMovement()) {
-            // nothing
-        }
+        super.processMovement();
 
         const moved = this.lastTickX !== this.x || this.lastTickZ !== this.z;
         if (moved) {
             this.lastMovement = World.currentTick + 1;
         }
         return moved;
-    }
-
-    clearInteraction() {
-        super.clearInteraction();
-    }
-
-    pathToTarget(): void {
-        super.pathToTarget();
     }
 
     targetWithinMaxRange(): boolean {
@@ -368,13 +340,12 @@ export default class Npc extends PathingEntity {
     }
 
     processTimers() {
-        if (this.timerInterval !== 0 && this.timerClock >= this.timerInterval) {
-            this.timerClock = 0;
-
+        if (this.timerInterval > 0 && this.timerClock++ >= this.timerInterval) {
             const type = NpcType.get(this.type);
             const script = ScriptProvider.getByTrigger(ServerTriggerType.AI_TIMER, type.id, type.category);
             if (script) {
                 this.executeScript(ScriptRunner.init(script, this));
+                this.timerClock = 0;
             }
         }
     }
@@ -678,6 +649,30 @@ export default class Npc extends PathingEntity {
         }
 
         const type: NpcType = NpcType.get(this.type);
+
+        if (this.tryInteract(true)) {
+            return;
+        }
+
+        const moved: boolean = this.updateMovement();
+
+        if (moved) {
+            if (!type.givechase) {
+                this.defaultMode();
+                return;
+            }
+        }
+
+        if (this.target) {
+            this.tryInteract(false);
+        }
+    }
+
+    private tryInteract(allowOpScenery: boolean): boolean {
+        if (!this.target) {
+            return false;
+        }
+        const type: NpcType = NpcType.get(this.type);
         const apTrigger: boolean =
             (this.targetOp >= NpcMode.APNPC1 && this.targetOp <= NpcMode.APNPC5) ||
             (this.targetOp >= NpcMode.APPLAYER1 && this.targetOp <= NpcMode.APPLAYER5) ||
@@ -686,49 +681,19 @@ export default class Npc extends PathingEntity {
         const opTrigger: boolean = !apTrigger;
 
         const script: ScriptFile | null = this.getTrigger();
-        if (script && opTrigger && this.inOperableDistance(this.target) && this.target instanceof PathingEntity) {
-            this.interacted = true;
-            this.clearWaypoints();
+        if (script && opTrigger && this.inOperableDistance(this.target) && (this.target instanceof PathingEntity || allowOpScenery)) {
             this.executeScript(ScriptRunner.init(script, this, this.target));
-            return;
+            return true;
         }
         if (script && apTrigger && this.inApproachDistance(type.attackrange, this.target)) {
-            this.interacted = true;
-            this.clearWaypoints();
             this.executeScript(ScriptRunner.init(script, this, this.target));
-            return;
+            return true;
         }
         if (this.inOperableDistance(this.target) && this.target instanceof PathingEntity) {
             this.target = null;
-            this.interacted = true;
-            this.clearWaypoints();
-            return;
+            return true;
         }
-
-        const moved: boolean = this.updateMovement();
-        if (moved) {
-            if (!type.givechase) {
-                this.defaultMode();
-                return;
-            }
-        }
-
-        if (this.target && !this.interacted) {
-            this.interacted = false;
-            if (script && opTrigger && this.inOperableDistance(this.target) && (this.target instanceof PathingEntity || !moved)) {
-                this.interacted = true;
-                this.clearWaypoints();
-                this.executeScript(ScriptRunner.init(script, this, this.target));
-            } else if (script && apTrigger && this.inApproachDistance(type.attackrange, this.target)) {
-                this.interacted = true;
-                this.clearWaypoints();
-                this.executeScript(ScriptRunner.init(script, this, this.target));
-            } else if (this.inOperableDistance(this.target) && (this.target instanceof PathingEntity || !moved)) {
-                this.target = null;
-                this.interacted = true;
-                this.clearWaypoints();
-            }
-        }
+        return false;
     }
 
     private getTrigger(): ScriptFile | null {

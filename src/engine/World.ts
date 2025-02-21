@@ -740,10 +740,6 @@ class World {
         const start: number = Date.now();
         for (const npc of this.npcs) {
             try {
-                // timers continue to tick when npc is despawned
-                if (npc.timerInterval !== 0) {
-                    npc.timerClock++;
-                }
                 if (npc.checkLifeCycle(this.currentTick)) {
                     if (npc.delayed && this.currentTick >= npc.delayedUntil) npc.delayed = false;
 
@@ -1004,7 +1000,8 @@ class World {
             try {
                 // if it throws then there was no available pid. otherwise guaranteed to not be -1.
                 pid = this.getNextPid(isClientConnected(player) ? player.client : null);
-            } catch (_) {  // eslint-disable-line @typescript-eslint/no-unused-vars
+            } catch (_) {
+                // eslint-disable-line @typescript-eslint/no-unused-vars
                 // world full
                 if (isClientConnected(player)) {
                     player.addSessionLog(LoggerEventType.ENGINE, 'Tried to log in - world full');

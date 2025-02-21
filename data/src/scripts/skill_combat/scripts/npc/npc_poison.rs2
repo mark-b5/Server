@@ -1,24 +1,20 @@
 [ai_timer,_] ~npc_poison_timer;
 
 [proc,npc_poison_timer]
-// if npc is already dead
-if (npc_stat(hitpoints) < 1) {
-    return;
-}
 // damage npc
-npc_damage(^hitmark_poison, divide(add(%npc_poison, 4), 5));
-
 %npc_poison = sub(%npc_poison, 1);
 if (%npc_poison > 0) {
-    npc_settimer(30);
+    npc_damage(^hitmark_poison, divide(add(%npc_poison, 4), 5));
+    // They died
+    if (npc_stat(hitpoints) = 0){
+        npc_queue(3, 0, 0);
+    }
 } else {
     ~npc_poison_clear;
+    return;
 }
 
-// they died
-if (npc_stat(hitpoints) = 0){
-    npc_queue(3, 0, 0);
-}
+
 
 
 
@@ -38,5 +34,5 @@ if (map_members = false) {
 
 if ($severity > %npc_poison) {
     npc_settimer(30);
+    %npc_poison = $severity;
 }
-%npc_poison = $severity; // poison severity is reset

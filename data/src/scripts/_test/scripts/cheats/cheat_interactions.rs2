@@ -16,6 +16,13 @@
 // [ai_applayer2,savage_bird]
 // npc_walk(movecoord(npc_coord, 2, 0, 0));
 
+
+[debugproc,savage]
+if (p_finduid(uid) = true) {
+    p_telejump(0_37_55_32_30);
+    npc_add(movecoord(coord, 0, 0, 5), savage_bird, 1000000);
+}
+
 [debugproc,itele]
 if (p_finduid(uid) = true) {
     p_telejump(0_37_55_32_30);

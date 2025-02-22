@@ -894,8 +894,8 @@ export default class Npc extends PathingEntity {
         this.huntTarget = null;
         this.huntClock = 0;
 
-        // in osrs, and in this 2005: https://youtu.be/8AFed6tyOp8?t=231
-        // once an npc finds a huntTarget, it will no longer hunt until it's interactions are cleared
+        // In osrs, and in this 2005: https://youtu.be/8AFed6tyOp8?t=231
+        // Once an npc finds a huntTarget, it will no longer hunt until its interactions are cleared
         if (!hunt.findKeepHunting) {
             this.huntMode = -1;
             return;

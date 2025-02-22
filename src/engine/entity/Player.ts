@@ -111,6 +111,24 @@ export default class Player extends PathingEntity {
         [4550, 4537, 5681, 5673, 5790, 6806, 8076, 4574]
     ];
 
+    static readonly MALE_FEMALE_MAP = new Map<number, number>([
+        [0, 45], [1, 47], [2, 48], [3, 49], [4, 50], [5, 51], [6, 52], [7, 53], [8, 54], [9, 55],
+        [18, 56], [19, 56], [20, 56], [21, 56], [22, 56], [23, 56], [24, 56], [25, 56],
+        [26, 61], [27, 63], [28, 62], [29, 65], [30, 64], [31, 63], [32, 66],
+        [33, 67], [34, 68], [35, 69], 
+        [36, 70], [37, 71], [38, 72], [39, 76], [40, 75], [41, 78],
+        [42, 79], [43, 80], [44, 81]
+    ]);
+
+    static readonly FEMALE_MALE_MAP = new Map<number, number>([
+        [45, 0], [46, 0], [47, 1], [48, 2], [49, 3], [50, 4], [51, 5], [52, 6], [53, 7], [54, 8], [55, 9],
+        [56, 18], [57, 18], [58, 18], [59, 18], [60, 18], 
+        [61, 26], [62, 27], [63, 28], [64, 29], [65, 29], [66, 32],
+        [67, 33], [68, 34], [69, 35], 
+        [70, 36], [71, 37], [72, 38], [73, 36], [74, 36], [75, 40], [76, 39], [77, 36], [78, 41],
+        [79, 42], [80, 43], [81, 44]
+    ]);
+
     save() {
         const sav = Packet.alloc(1);
         sav.p2(0x2004); // magic
@@ -261,7 +279,7 @@ export default class Player extends PathingEntity {
     preventLogoutUntil: number = -1;
 
     // not stored as a byte buffer so we can write and encrypt opcodes later
-    buffer: LinkList<OutgoingMessage> = new LinkList();
+    buffer: OutgoingMessage[] = [];
     lastResponse: number = -1;
     lastConnected: number = -1;
 
@@ -316,6 +334,7 @@ export default class Player extends PathingEntity {
     lastZone: number = -1;
 
     muted_until: Date | null = null;
+    members: boolean = true;
 
     constructor(username: string, username37: bigint, hash64: bigint) {
         super(0, 3094, 3106, 1, 1, EntityLifeCycle.FOREVER, MoveRestrict.NORMAL, BlockWalk.NPC, MoveStrategy.SMART, InfoProt.PLAYER_FACE_COORD.id, InfoProt.PLAYER_FACE_ENTITY.id); // tutorial island.
@@ -346,7 +365,7 @@ export default class Player extends PathingEntity {
         this.activeScript = null;
         this.invListeners.length = 0;
         this.resumeButtons.length = 0;
-        this.buffer.clear();
+        this.buffer = [];
         this.queue.clear();
         this.weakQueue.clear();
         this.engineQueue.clear();
@@ -1912,7 +1931,7 @@ export default class Player extends PathingEntity {
         if (message.priority === ServerProtPriority.IMMEDIATE) {
             this.writeInner(message);
         } else {
-            this.buffer.addTail(message);
+            this.buffer.push(message);
         }
     }
 

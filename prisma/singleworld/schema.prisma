@@ -38,6 +38,8 @@ model account {
 
     notes         String?
     notes_updated DateTime?
+
+    members       Boolean  @default(true)
 }
 
 // logged in sessions
@@ -193,5 +195,15 @@ model input_report_event {
     mouse_y         Int?
     key_code        Int?
     
+    @@id([input_report_id, seq])
+}
+
+model input_report_event_raw {
+    input_report_id Int
+    seq             Int
+
+    coord           Int
+    data            Bytes
+
     @@id([input_report_id, seq])
 }

@@ -101,6 +101,7 @@ import InputTrackingEvent from './entity/tracking/InputEvent.js';
 import { SessionLog } from '#/engine/entity/tracking/SessionLog.js';
 import { type GenericLoginThreadResponse, isPlayerLoginResponse, isPlayerLogoutResponse } from '#/server/login/index.d.js';
 import { FriendThreadMessage } from '#/server/friend/FriendThread.js';
+import Visibility from '#/engine/entity/Visibility.js';
 
 const priv = forge.pki.privateKeyFromPem(Environment.STANDALONE_BUNDLE ? await (await fetch('data/config/private.pem')).text() : fs.readFileSync('data/config/private.pem', 'ascii'));
 
@@ -682,7 +683,7 @@ class World {
                 if (this.currentTick % World.AFK_EVENTRATE === 0) {
                     // (normal) 1/12 chance every 5 minutes of setting an afk event state (even distrubution 60/5)
                     // (afk) double the chance?
-                    player.afkEventReady = Math.random() < (player.zonesAfk() ? 0.1666 : 0.0833);
+                    player.afkEventReady = player.visibility === Visibility.DEFAULT && Math.random() < (player.zonesAfk() ? 0.1666 : 0.0833);
                 }
 
                 if (isClientConnected(player) && player.decodeIn()) {
@@ -1839,9 +1840,14 @@ class World {
                 client.send(Uint8Array.from([16]));
                 client.close();
                 return;
+            } else if (reply === 9) {
+                // logging in to p2p on a f2p account
+                client.send(Uint8Array.from([12]));
+                client.close();
+                return;
             }
 
-            const { account_id, username, lowMemory, reconnecting, staffmodlevel, muted_until } = msg;
+            const { account_id, username, lowMemory, reconnecting, staffmodlevel, muted_until, members } = msg;
             const save = msg.save ?? new Uint8Array();
 
             // if (reconnecting && !this.getPlayerByUsername(username)) {
@@ -1865,12 +1871,27 @@ class World {
                 player.staffModLevel = staffmodlevel ?? 0;
                 player.lowMemory = lowMemory;
                 player.muted_until = muted_until ? new Date(muted_until) : null;
+                player.members = members;
 
                 if (this.logoutRequests.has(username)) {
                     // already logged in (on another world)
                     client.send(Uint8Array.from([5]));
                     client.close();
                     return;
+                }
+
+                if (!Environment.NODE_MEMBERS && !this.gameMap.isFreeToPlay(player.x, player.z)) {
+                    // in a p2p zone when logging into f2p
+                    if(player.members) {
+                        client.send(Uint8Array.from([17]));
+                        client.close();
+                        this.loginThread.postMessage({
+                            type: 'player_force_logout',
+                            username: username
+                        });
+                        return;
+                    }
+                    player.teleport(3221, 3219, 0);
                 }
 
                 this.newPlayers.add(player);

@@ -65,10 +65,12 @@ export default class Npc extends PathingEntity {
     timerInterval: number = 0;
     timerClock: number = 0;
     regenClock: number = 0;
+    huntClock: number = 0;
     huntMode: number = -1;
-    nextHuntTick: number = -1;
     huntTarget: Entity | null = null;
     huntrange: number = 0;
+    observerCount: number = 0;
+    spawnTriggerPending: boolean = true;
 
     nextPatrolTick: number = -1;
     nextPatrolPoint: number = 0;
@@ -156,10 +158,10 @@ export default class Npc extends PathingEntity {
 
             const npcType: NpcType = NpcType.get(this.type);
             this.huntrange = npcType.huntrange;
-            const hunt = HuntType.get(this.huntMode);
-            if (hunt) {
-                this.nextHuntTick = World.currentTick + hunt.rate;
-            }
+            this.huntMode = npcType.huntmode;
+            this.huntClock = 0;
+            this.huntTarget = null;
+            this.spawnTriggerPending = true;
         }
         super.resetPathingEntity();
     }
@@ -340,7 +342,7 @@ export default class Npc extends PathingEntity {
     }
 
     processTimers() {
-        if (this.timerInterval > 0 && this.timerClock++ >= this.timerInterval) {
+        if (this.timerInterval > 0 && ++this.timerClock >= this.timerInterval) {
             const type = NpcType.get(this.type);
             const script = ScriptProvider.getByTrigger(ServerTriggerType.AI_TIMER, type.id, type.category);
             if (script) {
@@ -460,9 +462,10 @@ export default class Npc extends PathingEntity {
         this.faceEntity = -1;
         this.masks |= InfoProt.NPC_FACE_ENTITY.id;
 
-        // Reset hunt target
+        const npcType: NpcType = NpcType.get(this.type);
+        this.huntMode = npcType.huntmode;
+        this.huntClock = 0;
         this.huntTarget = null;
-
         // Reset timer interval
         this.timerInterval = type.timer;
     }
@@ -650,19 +653,20 @@ export default class Npc extends PathingEntity {
 
         const type: NpcType = NpcType.get(this.type);
 
+        // Try to interact before moving, include op Obj and Loc
         if (this.tryInteract(true)) {
             return;
         }
 
         const moved: boolean = this.updateMovement();
 
-        if (moved) {
-            if (!type.givechase) {
-                this.defaultMode();
-                return;
-            }
+        // Clear target if givechase=no
+        if (moved && !type.givechase) {
+            this.defaultMode();
+            return;
         }
 
+        // Try to interact again after moving
         if (this.target) {
             this.tryInteract(false);
         }
@@ -832,22 +836,17 @@ export default class Npc extends PathingEntity {
     // https://x.com/JagexAsh/status/1821236327150710829
     // https://x.com/JagexAsh/status/1799793914595131463
     huntAll(): void {
-        if (this.nextHuntTick > World.currentTick) {
-            return;
-        }
-        if (this.huntrange < 1) {
-            return;
-        }
+        this.huntTarget = null;
+
         const hunt: HuntType = HuntType.get(this.huntMode);
-        if (hunt.type === HuntModeType.OFF) {
+
+        // If a huntrate is defined, this acts as a throttle
+        if (this.huntClock < hunt.rate - 1) {
             return;
         }
-        if (hunt.nobodyNear === HuntNobodyNear.PAUSEHUNT && !World.gameMap.getZoneGrid(this.level).isFlagged(CoordGrid.zone(this.x), CoordGrid.zone(this.z), 5)) {
-            return;
-        }
-        // in osrs, and in this 2005: https://youtu.be/8AFed6tyOp8?t=231
-        // once an npc finds a huntTarget, it will no longer hunt until it's interactions are cleared
-        if (!hunt.findKeepHunting && this.huntTarget !== null) {
+
+        // If no hunt, just return
+        if (hunt.type === HuntModeType.OFF || this.huntrange < 1) {
             return;
         }
 
@@ -862,21 +861,45 @@ export default class Npc extends PathingEntity {
             hunted = this.huntLocs(hunt);
         }
 
-        // pick randomly from the hunted entities
+        // Pick randomly from the hunted entities
         if (hunted.length > 0) {
             const entity: Entity = hunted[Math.floor(Math.random() * hunted.length)];
             this.huntTarget = entity;
-            if (NpcMode.QUEUE1 <= hunt.findNewMode && hunt.findNewMode <= NpcMode.QUEUE20) {
-                const npcType = NpcType.get(this.type);
-                const script = ScriptProvider.getByTrigger(ServerTriggerType.AI_QUEUE1 + (hunt.findNewMode - NpcMode.QUEUE1), npcType.id, npcType.category);
-                if (script) {
-                    this.enqueueScript(script, 0, 0);
-                }
-            } else {
-                this.setInteraction(Interaction.SCRIPT, entity, hunt.findNewMode);
-            }
         }
-        this.nextHuntTick = World.currentTick + hunt.rate;
+    }
+
+    consumeHuntTarget() {
+        const hunt: HuntType = HuntType.get(this.huntMode);
+
+        // We need a huntTarget and a huntMode
+        if (!this.huntTarget || hunt.type === HuntModeType.OFF) {
+            return;
+        }
+
+        // Findnewmode runs a Queue trigger rather than setting the interaction
+        if (NpcMode.QUEUE1 <= hunt.findNewMode && hunt.findNewMode <= NpcMode.QUEUE20) {
+            const npcType = NpcType.get(this.type);
+            const script = ScriptProvider.getByTrigger(ServerTriggerType.AI_QUEUE1 + (hunt.findNewMode - NpcMode.QUEUE1), npcType.id, npcType.category);
+
+            if (script) {
+                const state = ScriptRunner.init(script, this, null, null);
+                ScriptRunner.execute(state);
+            }
+        } else {
+            // Set the interaction
+            this.setInteraction(Interaction.SCRIPT, this.huntTarget, hunt.findNewMode);
+        }
+
+        // Clear target
+        this.huntTarget = null;
+        this.huntClock = 0;
+
+        // in osrs, and in this 2005: https://youtu.be/8AFed6tyOp8?t=231
+        // once an npc finds a huntTarget, it will no longer hunt until it's interactions are cleared
+        if (!hunt.findKeepHunting) {
+            this.huntMode = -1;
+            return;
+        }
     }
 
     private huntPlayers(hunt: HuntType): Entity[] {

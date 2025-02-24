@@ -13,8 +13,8 @@ if (p_finduid(uid) = true) {
     healenergy(10000);
     ~clear_inventory;
     %runners_killed = 0;
-    %initial_runners = 5;
-    %total_runners = 6;
+    %initial_runners = 2;
+    %total_runners = 4;
     %runners_spawned = 0;
 
     // Clean up runners
@@ -330,25 +330,7 @@ if (p_finduid(uid) = true) {
     }
 }
 
-[proc,get_defender_food]
-if(inv_freespace(inv) = 0){
-    return;
-}
-anim(human_pickpocket, 0);
-p_arrivedelay();
-def_int $i = 0;
-while($i < 9){
-    if(inv_freespace(inv) > 0){
-        inv_add(inv, crackers, 1);
-    }
-    if(inv_freespace(inv) > 0){
-        inv_add(inv, tofu, 1);
-    }
-    if(inv_freespace(inv) > 0){
-        inv_add(inv, worms, 1);
-    }
-    $i = calc($i + 1);
-}
+
 
 [timer,ba_game]
 if(%runners_spawned < %total_runners & %runners_spawned < calc(%initial_runners + %runners_killed)){

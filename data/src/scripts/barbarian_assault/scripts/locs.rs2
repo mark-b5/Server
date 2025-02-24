@@ -1,2 +1,46 @@
 [oploc1,ba_dispenser_d]
 ~get_defender_food;
+
+
+[oploc1,runner_trap_1]
+~ba_repair_trap;
+
+[oploc1,runner_trap_broken]
+~ba_repair_trap;
+
+[proc,ba_repair_trap]
+p_arrivedelay();
+anim(human_smithing, 0);
+p_delay(3);
+loc_add(loc_coord, runner_trap_2, 1, centrepiece_straight, 1000);
+inv_del(inv, logs, 1);
+
+
+[opheld1,def_horn]
+say("Healer: Poison tofu!");
+
+[opheld2,def_horn]
+say("Healer: Poison worms!");
+
+[opheld3,def_horn]
+say("Healer: Poison meat!");
+
+[proc,get_defender_food]
+if(inv_freespace(inv) = 0){
+    return;
+}
+anim(human_pickpocket, 0);
+p_arrivedelay();
+def_int $i = 0;
+while($i < 9){
+    if(inv_freespace(inv) > 0){
+        inv_add(inv, crackers, 1);
+    }
+    if(inv_freespace(inv) > 0){
+        inv_add(inv, tofu, 1);
+    }
+    if(inv_freespace(inv) > 0){
+        inv_add(inv, worms, 1);
+    }
+    $i = calc($i + 1);
+}

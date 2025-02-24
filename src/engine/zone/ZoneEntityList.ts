@@ -40,7 +40,7 @@ export default abstract class ZoneEntityList<T> extends Array<T[] | undefined> {
     }
 
     *all(reverse: boolean = false): IterableIterator<T> {
-        for (let index: number = this.length - 1; index >= 0; index--) {
+        for (let index: number = 0; index < this.length; index++) {
             const items: T[] | undefined = this[index];
             if (typeof items === 'undefined') {
                 continue;
@@ -71,20 +71,20 @@ export default abstract class ZoneEntityList<T> extends Array<T[] | undefined> {
         this.count++;
     }
 
-    // sortStack(coord: number, unchecked: boolean = false): void {
-    //     const top: T | undefined = this.nextTopStack(coord);
-    //     if (typeof top === 'undefined') {
-    //         return;
-    //     }
-    //     const items: T[] | undefined = this[coord];
-    //     if (typeof items === 'undefined') {
-    //         return;
-    //     }
-    //     if (items[0] !== top) {
-    //         this.remove(coord, top);
-    //         this.addFirst(coord, top, unchecked);
-    //     }
-    // }
+    sortStack(coord: number, unchecked: boolean = false): void {
+        const top: T | undefined = this.nextTopStack(coord);
+        if (typeof top === 'undefined') {
+            return;
+        }
+        const items: T[] | undefined = this[coord];
+        if (typeof items === 'undefined') {
+            return;
+        }
+        if (items[0] !== top) {
+            this.remove(coord, top);
+            this.addFirst(coord, top, unchecked);
+        }
+    }
 
     remove(coord: number, item: T): void {
         const items: T[] | undefined = this[coord];

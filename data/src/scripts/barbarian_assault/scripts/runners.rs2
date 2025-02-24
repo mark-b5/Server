@@ -1,15 +1,15 @@
 [ai_timer,penance_runner]
 if(%npc_int = 0){
     def_int $rand = randominc(5);
-    // if($rand < 4){
-        // npc_walk(movecoord(npc_coord,0,0,calc(3540 - coordz(npc_coord))));
-    // }
-    // else if($rand = 4){
-        // npc_walk(movecoord(npc_coord,calc(2413 - coordx(npc_coord)),0,0));
-    // }
-    // else {
+    if($rand < 4){
+        npc_walk(movecoord(npc_coord,0,0,calc(3540 - coordz(npc_coord))));
+    }
+    else if($rand = 4){
+        npc_walk(movecoord(npc_coord,calc(2413 - coordx(npc_coord)),0,0));
+    }
+    else {
         npc_walk(movecoord(npc_coord,calc(2383 - coordx(npc_coord)),0,0));
-    // }
+    }
 
     npc_sethuntmode(null);
     %npc_int = -1;

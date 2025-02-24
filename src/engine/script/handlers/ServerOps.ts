@@ -9,43 +9,24 @@ import World from '#/engine/World.js';
 import ScriptOpcode from '#/engine/script/ScriptOpcode.js';
 import { CommandHandlers } from '#/engine/script/ScriptRunner.js';
 import ScriptState from '#/engine/script/ScriptState.js';
-import {ActiveNpc, ActivePlayer} from '#/engine/script/ScriptPointer.js';
-import {HuntIterator, NpcHuntAllCommandIterator} from '#/engine/script/ScriptIterators.js';
+import { ActiveNpc, ActivePlayer, ActiveObj } from '#/engine/script/ScriptPointer.js';
+import { HuntIterator, NpcHuntAllCommandIterator, ObjHuntAllCommandIterator } from '#/engine/script/ScriptIterators.js';
 
 import { CoordGrid } from '#/engine/CoordGrid.js';
 import MapFindSqaureType from '#/engine/entity/MapFindSquareType.js';
 import HuntModeType from '#/engine/entity/hunt/HuntModeType.js';
 import Player from '#/engine/entity/Player.js';
 import Npc from '#/engine/entity/Npc.js';
+import Obj from '#/engine/entity/Obj.js';
 import HuntVis from '#/engine/entity/hunt/HuntVis.js';
 
 import Environment from '#/util/Environment.js';
 
 import { LocLayer, LocAngle } from '@2004scape/rsmod-pathfinder';
 
-import {
-    isIndoors,
-    isLineOfSight,
-    isLineOfWalk,
-    isMapBlocked,
-    layerForLocShape
-} from '#/engine/GameMap.js';
+import { isIndoors, isLineOfSight, isLineOfWalk, isMapBlocked, layerForLocShape } from '#/engine/GameMap.js';
 
-import {
-    check,
-    CoordValid,
-    FontTypeValid,
-    HuntVisValid,
-    LocTypeValid,
-    MesanimValid,
-    NumberNotNull,
-    NumberPositive,
-    ParamTypeValid,
-    SeqTypeValid,
-    SpotAnimTypeValid,
-    StructTypeValid,
-    FindSquareValid
-} from '#/engine/script/ScriptValidators.js';
+import { check, CoordValid, FontTypeValid, HuntVisValid, LocTypeValid, MesanimValid, NumberNotNull, NumberPositive, ParamTypeValid, SeqTypeValid, SpotAnimTypeValid, StructTypeValid, FindSquareValid } from '#/engine/script/ScriptValidators.js';
 
 const ServerOps: CommandHandlers = {
     [ScriptOpcode.MAP_CLOCK]: state => {
@@ -61,7 +42,7 @@ const ServerOps: CommandHandlers = {
 
         const from: CoordGrid = check(c1, CoordValid);
         const to: CoordGrid = check(c2, CoordValid);
-    
+
         let count = 0;
         for (let x = Math.floor(from.x / 8); x <= Math.ceil(to.x / 8); x++) {
             for (let z = Math.floor(from.z / 8); z <= Math.ceil(to.z / 8); z++) {
@@ -72,7 +53,7 @@ const ServerOps: CommandHandlers = {
                 }
             }
         }
-    
+
         state.pushInt(count);
     },
 
@@ -127,6 +108,34 @@ const ServerOps: CommandHandlers = {
 
         state.activeNpc = result.value;
         state.pointerAdd(ActiveNpc[state.intOperand]);
+        state.pushInt(1);
+    },
+
+    // https://x.com/JagexAsh/status/1796460129430433930
+    // https://x.com/JagexAsh/status/1821236327150710829
+    [ScriptOpcode.OBJ_HUNTALL]: state => {
+        const [coord, distance, checkVis] = state.popInts(3);
+
+        const position: CoordGrid = check(coord, CoordValid);
+        check(distance, NumberNotNull);
+        const huntvis: HuntVis = check(checkVis, HuntVisValid);
+
+        state.huntIterator = new ObjHuntAllCommandIterator(World.currentTick, position.level, position.x, position.z, distance);
+    },
+
+    [ScriptOpcode.OBJ_HUNTNEXT]: state => {
+        const result = state.huntIterator?.next();
+        if (!result || result.done) {
+            state.pushInt(0);
+            return;
+        }
+
+        if (!(result.value instanceof Obj)) {
+            throw new Error('[ServerOps] huntnext command must result instance of Player.');
+        }
+
+        state.activeObj = result.value;
+        state.pointerAdd(ActiveObj[state.intOperand]);
         state.pushInt(1);
     },
 
@@ -475,7 +484,7 @@ const ServerOps: CommandHandlers = {
                     const randomZ = origin.z + distZ;
                     if (freeWorld && !World.gameMap.isFreeToPlay(randomX, randomZ)) {
                         continue;
-                    }   
+                    }
                     if (isLineOfSight(origin.level, randomX, randomZ, origin.x, origin.z) && !isMapBlocked(randomX, randomZ, origin.level)) {
                         state.pushInt(CoordGrid.packCoord(origin.level, randomX, randomZ));
                         return;
@@ -496,7 +505,7 @@ const ServerOps: CommandHandlers = {
                     if (freeWorld && !World.gameMap.isFreeToPlay(x, randomZ)) {
                         continue;
                     }
-                    if (!isMapBlocked(x, randomZ, origin.level) && !CoordGrid.isWithinDistanceSW({x: x, z: randomZ}, origin, minRadius)) {
+                    if (!isMapBlocked(x, randomZ, origin.level) && !CoordGrid.isWithinDistanceSW({ x: x, z: randomZ }, origin, minRadius)) {
                         state.pushInt(CoordGrid.packCoord(origin.level, x, randomZ));
                         return;
                     }
@@ -513,7 +522,7 @@ const ServerOps: CommandHandlers = {
                     if (freeWorld && !World.gameMap.isFreeToPlay(x, randomZ)) {
                         continue;
                     }
-                    if (isLineOfWalk(origin.level, x, randomZ, origin.x, origin.z) && !isMapBlocked(x, randomZ, origin.level) && !CoordGrid.isWithinDistanceSW({x: x, z: randomZ}, origin, minRadius)) {
+                    if (isLineOfWalk(origin.level, x, randomZ, origin.x, origin.z) && !isMapBlocked(x, randomZ, origin.level) && !CoordGrid.isWithinDistanceSW({ x: x, z: randomZ }, origin, minRadius)) {
                         state.pushInt(CoordGrid.packCoord(origin.level, x, randomZ));
                         return;
                     }
@@ -530,14 +539,14 @@ const ServerOps: CommandHandlers = {
                     if (freeWorld && !World.gameMap.isFreeToPlay(x, randomZ)) {
                         continue;
                     }
-                    if (isLineOfSight(origin.level, x, randomZ, origin.x, origin.z) && !isMapBlocked(x, randomZ, origin.level) && !CoordGrid.isWithinDistanceSW({x: x, z: randomZ}, origin, minRadius)) {
+                    if (isLineOfSight(origin.level, x, randomZ, origin.x, origin.z) && !isMapBlocked(x, randomZ, origin.level) && !CoordGrid.isWithinDistanceSW({ x: x, z: randomZ }, origin, minRadius)) {
                         state.pushInt(CoordGrid.packCoord(origin.level, x, randomZ));
                         return;
                     }
                 }
             }
         }
-        
+
         state.pushInt(coord);
     },
 

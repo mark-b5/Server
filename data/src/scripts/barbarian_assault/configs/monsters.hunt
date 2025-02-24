@@ -1,0 +1,7 @@
+[runner_hunt]
+type=obj
+check_category=runner_foods
+check_vis=lineofsight
+find_keephunting=off
+rate=3
+find_newmode=queue11

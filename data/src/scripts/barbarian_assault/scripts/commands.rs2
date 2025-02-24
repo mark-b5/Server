@@ -1,0 +1,368 @@
+
+[debugproc,ba]
+if (p_finduid(uid) = true) {
+    p_telejump(0_37_55_33_16);
+
+    npc_add(0_37_55_32_17, player_placeholder, 100);
+    npc_add(0_37_55_31_18, player_placeholder, 100);
+    npc_add(0_37_55_30_17, player_placeholder, 100);
+    npc_add(0_37_55_29_16, player_placeholder, 100);
+
+
+
+    healenergy(10000);
+    ~clear_inventory;
+    %runners_killed = 0;
+    %initial_runners = 5;
+    %total_runners = 6;
+    %runners_spawned = 0;
+
+    // Clean up runners
+    npc_findall(0_37_55_32_32, penance_runner, 32, 0);
+    while (npc_findnext = true) {
+        npc_del;
+    }
+
+    obj_huntall(0_37_55_36_39, 32, 0);
+    while(obj_huntnext=true){
+        if(oc_category(obj_type)=runner_foods){
+            obj_del;
+        }
+    }
+
+    inv_add(inv, def_horn, 1);
+    settimer(ba_game, 11);
+
+    ~build_ba_map;
+}
+
+
+[proc,build_ba_map]{
+
+    def_coord $swcorner = 0_37_55_0_0;
+
+
+    obj_addall(movecoord($swcorner, 32, 0, 42), hammer, 1, 100);
+    obj_addall(movecoord($swcorner, 29, 0, 46), logs, 1, 100);
+    obj_addall(movecoord($swcorner, 28, 0, 47), logs, 1, 100);
+
+    npc_add(0_37_55_42_45, penance_healer, 100);
+    npc_add(0_37_55_24_47, penance_fighter, 100);
+    npc_add(0_37_55_18_45, penance_ranger, 100);
+
+
+    // Penance caves
+    // loc_add(0_37_55_35_48, chompybird_cave_entrance, 0, centrepiece_straight, 10000);
+    // loc_add(0_37_55_41_47, chompybird_cave_entrance, 0, centrepiece_straight, 10000);
+
+
+
+
+    //ranger cave 
+    loc_add(movecoord($swcorner, 23, 0, 48), chompybird_cave_entrance, 0, centrepiece_straight, 10000);
+
+    
+    // wall between ranger and fighter cave
+    loc_add(movecoord($swcorner, 20, 0, 47), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 21, 0, 48), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 21, 0, 47), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 22, 0, 48), ba_hedge, 0, centrepiece_straight, 10000);
+
+    //fighter cave
+    loc_add(movecoord($swcorner, 17, 0, 47), chompybird_cave_entrance, 0, centrepiece_straight, 10000);
+
+    // Wall between fighter and runner cave
+    loc_add(movecoord($swcorner, 26, 0, 48), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 27, 0, 49), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 27, 0, 48), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 28, 0, 49), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 29, 0, 49), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 30, 0, 49), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 31, 0, 49), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 32, 0, 49), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 32, 0, 48), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 33, 0, 48), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 34, 0, 48), ba_hedge, 0, centrepiece_straight, 10000);
+
+    // runner cave
+    loc_add(movecoord($swcorner, 35, 0, 48), chompybird_cave_entrance, 0, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 38, 0, 48), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 38, 0, 47), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 39, 0, 47), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 40, 0, 47), ba_hedge, 0, centrepiece_straight, 10000);
+
+    //healer cave
+    loc_add(movecoord($swcorner, 41, 0, 47), chompybird_cave_entrance, 0, centrepiece_straight, 10000);
+
+    //east wall, from the north
+    loc_add(movecoord($swcorner, 44, 0, 47), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 44, 0, 46), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 45, 0, 46), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 45, 0, 45), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 46, 0, 45), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 46, 0, 44), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 46, 0, 43), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 46, 0, 42), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 42), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 41), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 41), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 40), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 39), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 48, 0, 38), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 38), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 37), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 36), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 47, 0, 35), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 35), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 34), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 34), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 33), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 32), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 31), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 30), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 29), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 28), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 27), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 26), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 25), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 24), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 23), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 22), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 48, 0, 21), ba_hedge_corner, 2, centrepiece_straight, 10000);
+
+    // Some horn of glory boxes
+    loc_add(movecoord($swcorner, 48, 0, 23), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 22), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 22), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 21), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 46, 0, 21), loc_355, 0, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 49, 0, 20), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 50, 0, 20), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 50, 0, 21), loc_355, 0, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 51, 0, 22), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 52, 0, 22), loc_355, 0, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 52, 0, 18), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 52, 0, 16), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 52, 0, 15), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 51, 0, 15), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 50, 0, 15), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 15), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 49, 0, 16), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 48, 0, 16), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 16), loc_355, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 46, 0, 16), loc_355, 0, centrepiece_straight, 10000);
+
+    // horn of glory hedge
+    loc_add(movecoord($swcorner, 53, 0, 22), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 53, 0, 21), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 53, 0, 20), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 53, 0, 19), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 53, 0, 18), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 53, 0, 17), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 53, 0, 16), ba_hedge_corner, 2, centrepiece_straight, 10000);
+
+    // South hedge, from horn of glory
+    loc_add(movecoord($swcorner, 48, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 47, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 46, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 45, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 44, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 43, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 42, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 41, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 40, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 39, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 38, 0, 15), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 38, 0, 14), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 37, 0, 14), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 37, 0, 13), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 36, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 35, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 34, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 33, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+
+    // Raa cave
+    loc_add(movecoord($swcorner, 29, 0, 12), loc_558, 2, centrepiece_straight, 10000);
+
+    // West of raa cave + west wall
+    loc_add(movecoord($swcorner, 28, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 27, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 26, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 25, 0, 13), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 24, 0, 13), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 24, 0, 14), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 23, 0, 14), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 23, 0, 15), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 22, 0, 15), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 21, 0, 15), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 21, 0, 16), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 20, 0, 16), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 19, 0, 16), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 18, 0, 16), ba_hedge, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 17, 0, 16), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 17, 0, 17), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 16, 0, 17), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 16, 0, 18), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 16, 0, 19), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 15, 0, 19), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 15, 0, 20), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 14, 0, 20), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 14, 0, 21), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 14, 0, 22), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 14, 0, 23), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 23), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 24), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 24), ba_hedge_corner, 3, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 12, 0, 25), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 26), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 27), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 28), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 29), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 30), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 31), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 12, 0, 32), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 32), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 33), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 34), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 34), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 35), ba_hedge_corner, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 11, 0, 35), ba_hedge_corner, 3, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 11, 0, 36), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 11, 0, 37), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 11, 0, 38), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 38), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 12, 0, 39), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 39), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 40), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 41), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 13, 0, 42), ba_hedge, 1, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 13, 0, 43), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 14, 0, 43), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 14, 0, 44), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 15, 0, 44), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 15, 0, 45), ba_hedge, 1, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 15, 0, 46), ba_hedge_corner, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 16, 0, 46), ba_hedge_corner, 2, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 16, 0, 47), ba_hedge_corner, 0, centrepiece_straight, 10000);
+
+    loc_add(movecoord($swcorner, 22, 0, 47), loc_2068, 0, centrepiece_straight, 10000);
+    loc_add(movecoord($swcorner, 22, 0, 50), loc_2068, 0, centrepiece_straight, 10000);
+
+
+    
+
+    loc_add(0_37_55_45_34, runner_trap_2, 0, centrepiece_straight, 10000);
+    
+    // Spikes
+    loc_add(0_37_55_36_43, loc_1188, 1, centrepiece_straight, 1000);
+    loc_add(0_37_55_36_42, loc_1188, 1, centrepiece_straight, 1000);
+    loc_add(0_37_55_37_43, loc_1188, 1, centrepiece_straight, 1000);
+    loc_add(0_37_55_37_42, loc_1188, 1, centrepiece_straight, 1000);
+
+    loc_add(0_37_55_38_44, loc_1188, 1, centrepiece_straight, 1000);
+
+    loc_add(0_37_55_40_40, loc_1188, 1, centrepiece_straight, 1000);
+    loc_add(0_37_55_40_39, loc_1188, 1, centrepiece_straight, 1000);
+    loc_add(0_37_55_41_40, loc_1188, 1, centrepiece_straight, 1000);
+    loc_add(0_37_55_41_39, loc_1188, 1, centrepiece_straight, 1000);
+
+    loc_add(0_37_55_43_39, loc_1188, 1, centrepiece_straight, 1000);
+
+    // East Cannon
+    ~build_ba_cannon(0_37_55_38_32);
+
+    // West cannon
+    ~build_ba_cannon(0_37_55_19_32);
+
+    //Dispensers
+    loc_add(0_37_55_33_14, loc_355, 0, centrepiece_straight, 10000);
+    loc_add(0_37_55_34_14, ba_dispenser_d, 0, centrepiece_straight, 10000);
+    loc_add(0_37_55_35_14, loc_355, 0, centrepiece_straight, 10000);
+    loc_add(0_37_55_36_14, loc_355, 0, centrepiece_straight, 10000);
+}
+
+[proc,build_ba_cannon](coord $sw){
+    loc_add($sw, ba_cannon_wall, 1, wall_diagonal, 10000);
+    loc_add(movecoord($sw, 0, 0, 1), ba_cannon_wall, 0, wall_straight, 10000);
+    loc_add(movecoord($sw, 0, 0, 2), ba_cannon_wall, 0, wall_straight, 10000);
+    loc_add(movecoord($sw, 0, 0, 3), ba_cannon_wall, 0, wall_diagonal, 10000);
+
+
+    loc_add(movecoord($sw, 4, 0, 0), ba_cannon_wall, 0, wall_diagonal, 10000);
+    loc_add(movecoord($sw, 4, 0, 1), ba_cannon_wall, 2, wall_straight, 10000);
+    loc_add(movecoord($sw, 4, 0, 2), ba_cannon_wall, 2, wall_straight, 10000);
+    loc_add(movecoord($sw, 4, 0, 3), ba_cannon_wall, 1, wall_diagonal, 10000);
+
+    loc_add(movecoord($sw, 1, 0, 3), ba_cannon_wall, 1, wall_straight, 10000);
+    loc_add(movecoord($sw, 2, 0, 3), ba_cannon_wall, 1, wall_straight, 10000);
+    loc_add(movecoord($sw, 3, 0, 3), ba_cannon_wall, 1, wall_straight, 10000);
+
+    loc_add(movecoord($sw, 1, 0, -1), ba_cannon_wall, 0, wall_straight, 10000);
+    loc_add(movecoord($sw, 1, 0, -2), ba_cannon_wall, 0, wall_straight, 10000);
+
+    loc_add(movecoord($sw, 3, 0, -1), ba_cannon_wall, 2, wall_straight, 10000);
+    loc_add(movecoord($sw, 3, 0, -2), ba_cannon_wall, 2, wall_straight, 10000);
+
+
+    loc_add(movecoord($sw, 2, 0, 2), loc_821, 1, centrepiece_straight, 10000);
+    
+}
+
+[proc,clear_inventory]
+if (p_finduid(uid) = true) {
+    def_int $slot = 0;
+    while($slot < 28){
+        inv_delslot(inv, $slot);
+        $slot = calc($slot + 1);
+    }
+}
+
+[proc,get_defender_food]
+if(inv_freespace(inv) = 0){
+    return;
+}
+anim(human_pickpocket, 0);
+p_arrivedelay();
+def_int $i = 0;
+while($i < 9){
+    if(inv_freespace(inv) > 0){
+        inv_add(inv, crackers, 1);
+    }
+    if(inv_freespace(inv) > 0){
+        inv_add(inv, tofu, 1);
+    }
+    if(inv_freespace(inv) > 0){
+        inv_add(inv, worms, 1);
+    }
+    $i = calc($i + 1);
+}
+
+[timer,ba_game]
+if(%runners_spawned < %total_runners & %runners_spawned < calc(%initial_runners + %runners_killed)){
+    npc_add(0_37_55_36_47, penance_runner, 100);
+    %npc_attacking_uid = uid;
+    %runners_spawned = calc(%runners_spawned + 1);
+}
+cleartimer(ba_game);
+settimer(ba_game, 11);
+
+[queue,runner_death]
+%runners_killed = calc(%runners_killed + 1);
+
+// obj_addall(0_37_55_32_42, hammer, 1, 100);
+// obj_addall(0_37_55_29_46, logs, 1, 100);
+// obj_addall(0_37_55_28_47, logs, 1, 100);
+

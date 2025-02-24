@@ -447,11 +447,11 @@ export default class Npc extends PathingEntity {
     }
 
     noMode(): void {
-        this.clearInteraction();
+        // this.clearInteraction();
         this.updateMovement(false);
-        this.targetOp = NpcMode.NONE;
-        this.faceEntity = -1;
-        this.masks |= InfoProt.NPC_FACE_ENTITY.id;
+        // this.targetOp = NpcMode.NONE;
+        // this.faceEntity = -1;
+        // this.masks |= InfoProt.NPC_FACE_ENTITY.id;
     }
 
     defaultMode(): void {
@@ -646,12 +646,11 @@ export default class Npc extends PathingEntity {
     }
 
     aiMode(): void {
-        if (!this.target || !this.validateTarget() || this.target.level !== this.level || !this.targetWithinMaxRange()) {
+        const type: NpcType = NpcType.get(this.type);
+        if (!this.target || !this.target.isValid() || this.target.level !== this.level || !this.targetWithinMaxRange()) {
             this.defaultMode();
             return;
         }
-
-        const type: NpcType = NpcType.get(this.type);
 
         // Try to interact before moving, include op Obj and Loc
         if (this.tryInteract(true)) {
@@ -685,6 +684,7 @@ export default class Npc extends PathingEntity {
         const opTrigger: boolean = !apTrigger;
 
         const script: ScriptFile | null = this.getTrigger();
+
         if (script && opTrigger && this.inOperableDistance(this.target) && (this.target instanceof PathingEntity || allowOpScenery)) {
             this.executeScript(ScriptRunner.init(script, this, this.target));
             return true;
@@ -693,8 +693,8 @@ export default class Npc extends PathingEntity {
             this.executeScript(ScriptRunner.init(script, this, this.target));
             return true;
         }
-        if (this.inOperableDistance(this.target) && this.target instanceof PathingEntity) {
-            this.target = null;
+        if (this.inOperableDistance(this.target)) {
+            // this.target = null;
             return true;
         }
         return false;

@@ -21,6 +21,12 @@
 // Use the next result from npc_huntall
 [command,npc_huntnext]()(boolean)
 [command,.npc_huntnext]()(boolean)
+
+// Search (hunt) for obj in a given area
+[command,obj_huntall](coord $source, int $distance, int $checkvis)
+// Use the next result from obj_huntall
+[command,obj_huntnext]()(boolean)
+[command,.obj_huntnext]()(boolean)
 // Returns true if $pos is in the area between $from and $to
 [command,inzone](coord $from, coord $to, coord $pos)(boolean)
 [command,.inzone](coord $from, coord $to, coord $pos)(boolean) // todo: replace all instances of this with inzone, should not have secondary

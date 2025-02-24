@@ -238,6 +238,58 @@ export class NpcHuntAllCommandIterator extends ScriptIterator<Entity> {
     }
 }
 
+export class ObjHuntAllCommandIterator extends ScriptIterator<Entity> {
+    // a radius of 1 will loop 9 zones
+    // a radius of 2 will loop 25 zones
+    // a radius of 3 will loop 49 zones
+    private readonly x: number;
+    private readonly z: number;
+    private readonly level: number;
+    private readonly minX: number;
+    private readonly maxX: number;
+    private readonly minZ: number;
+    private readonly maxZ: number;
+    private readonly distance: number;
+
+    constructor(tick: number, level: number, x: number, z: number, distance: number) {
+        super(tick);
+        const centerX: number = CoordGrid.zone(x);
+        const centerZ: number = CoordGrid.zone(z);
+        // Cap radius to 9 zones
+        const radius: number = 1;
+        this.x = x;
+        this.z = z;
+        this.level = level;
+        this.maxX = centerX + radius;
+        this.minX = centerX - radius;
+        this.maxZ = centerZ + radius;
+        this.minZ = centerZ - radius;
+        this.distance = distance;
+    }
+
+    protected *generator(): IterableIterator<Entity> {
+        for (let x: number = this.maxX; x >= this.minX; x--) {
+            const zoneX: number = x << 3;
+            for (let z: number = this.maxZ; z >= this.minZ; z--) {
+                const zoneZ: number = z << 3;
+
+                for (const obj of World.gameMap.getZone(zoneX, zoneZ, this.level).getAllObjsSafe()) {
+                    if (World.currentTick > this.tick) {
+                        throw new Error('[HuntIterator] tried to use an old iterator. Create a new iterator instead.');
+                    }
+                    if (CoordGrid.distanceToSW({ x: this.x, z: this.z }, obj) > this.distance) {
+                        continue;
+                    }
+                    if (!isLineOfSight(this.level, this.x, this.z, obj.x, obj.z)) {
+                        continue;
+                    }
+                    yield obj;
+                }
+            }
+        }
+    }
+}
+
 export class NpcIterator extends ScriptIterator<Npc> {
     private readonly level: number;
     private readonly x: number;

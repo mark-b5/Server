@@ -277,6 +277,8 @@ enum ScriptOpcode {
     OBJ_TAKEITEM,
     OBJ_TYPE,
     OBJ_FIND,
+    OBJ_HUNTALL,
+    OBJ_HUNTNEXT,
 
     // Npc config ops (4000-4099)
     NC_CATEGORY = 4000,
@@ -442,7 +444,7 @@ enum ScriptOpcode {
     MAP_LASTBANDWIDTHOUT,
     TIMESPENT, // custom: used to profile script execution (record start time)
     GETTIMESPENT, // custom: used to profile script execution (current duration)
-    CONSOLE,
+    CONSOLE
 }
 
 export default ScriptOpcode;

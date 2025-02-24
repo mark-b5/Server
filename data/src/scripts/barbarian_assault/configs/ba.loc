@@ -1,0 +1,56 @@
+[ba_dispenser_d]
+name=Defender item machine
+desc=Dispenser
+model=model_loc_355
+op1=Stock-Up
+
+[runner_trap_2]
+name=Runner trap(2)
+desc=Sharp and pointy!
+model=model_loc_881
+blockwalk=no
+category=active_ba_trap
+
+[runner_trap_1]
+name=Runner trap(1)
+desc=Sharp and pointy!
+model=model_loc_881
+op1=Repair
+blockwalk=no
+category=active_ba_trap
+
+[runner_trap_broken]
+name=Broken trap(0)
+desc=Sharp and pointy!
+model=model_loc_882
+op1=Repair
+blockwalk=no
+
+
+[ba_hedge]
+name=Hedge
+desc=Keeps the neighbours out!
+model=model_loc_1116
+sharelight=yes
+hillskew=yes
+mapscene=9
+blockrange=no
+
+[ba_hedge_corner]
+name=Hedge
+desc=Keeps the neighbours out!
+model=model_loc_1117
+sharelight=yes
+hillskew=yes
+mapscene=9
+
+
+[ba_cannon_wall]
+model=model_loc_3
+sharelight=yes
+occlude=yes
+retex1s=wall
+retex1d=elfwall
+recol2s=6342
+recol2d=12650
+hillskew=yes

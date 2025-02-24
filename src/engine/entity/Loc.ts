@@ -22,4 +22,16 @@ export default class Loc extends NonPathingEntity {
     get angle(): number {
         return (this.info >> 19) & 0x3;
     }
+
+    get layer(): number {
+        const shape = this.shape;
+        if (shape < 4) {
+            return 0;
+        } else if (shape < 9) {
+            return 1;
+        } else if (shape < 22) {
+            return 2;
+        }
+        return 3;
+    }
 }

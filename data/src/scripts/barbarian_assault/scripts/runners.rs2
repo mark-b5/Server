@@ -1,0 +1,73 @@
+[ai_timer,penance_runner]
+if(%npc_int = 0){
+    def_int $rand = randominc(5);
+    // if($rand < 4){
+        // npc_walk(movecoord(npc_coord,0,0,calc(3540 - coordz(npc_coord))));
+    // }
+    // else if($rand = 4){
+        // npc_walk(movecoord(npc_coord,calc(2413 - coordx(npc_coord)),0,0));
+    // }
+    // else {
+        npc_walk(movecoord(npc_coord,calc(2383 - coordx(npc_coord)),0,0));
+    // }
+
+    npc_sethuntmode(null);
+    %npc_int = -1;
+}
+else if (%npc_int = -1){
+    npc_sethuntmode(runner_hunt);
+    %npc_int = 0;
+    npc_walk(npc_coord);
+}
+else {
+    %npc_int = calc(%npc_int - 1);
+}
+
+[ai_queue11,penance_runner]
+obj_huntall(npc_coord, 30, 0);
+while(obj_huntnext=true){
+    if(oc_category(obj_type)=runner_foods){
+        npc_setmode(opobj1);
+        return;
+    }
+}
+
+[ai_opobj1,penance_runner]
+obj_del;
+if(obj_type = tofu | obj_type = worms){
+    npc_say("Chomp, chomp.");
+    def_int $trap = 0;
+    loc_findallzone(npc_coord);
+    while(loc_findnext() = true){
+        if(loc_category = active_ba_trap & distance(npc_coord, loc_coord) < 2){
+            $trap = 1;
+        }
+    }
+
+    if($trap = 1){
+        npc_arrivedelay();
+        npc_say("Urghhh!");
+        npc_queue(3, 0, 0);
+    }
+}
+else if(obj_type = crackers){
+    npc_walk(movecoord(npc_coord,0,0,calc(3558 - coordz(npc_coord))));
+    npc_say("Blughhhh.");
+    %npc_int = 3;
+}
+
+[ai_queue3,penance_runner]
+gosub(npc_death);
+loc_findallzone(npc_coord);
+def_int $trap = 0;
+while(loc_findnext() = true){
+    if(loc_type = runner_trap_1 & distance(npc_coord, loc_coord) < 2){
+        loc_add(loc_coord, runner_trap_broken, 1, centrepiece_straight, 1000);
+    }
+    if(loc_type = runner_trap_2 & distance(npc_coord, loc_coord) < 2){
+        loc_add(loc_coord, runner_trap_1, 1, centrepiece_straight, 1000);
+    }
+}
+if(finduid(%npc_attacking_uid) = true){
+    queue(runner_death, 0);
+}

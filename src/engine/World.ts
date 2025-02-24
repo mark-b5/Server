@@ -644,7 +644,7 @@ class World {
                     const hunt = HuntType.get(npc.huntMode);
 
                     if (hunt && hunt.type === HuntModeType.PLAYER) {
-                        npc.huntAll();
+                        // npc.huntAll();
                     }
                 }
             }
@@ -1882,7 +1882,7 @@ class World {
 
                 if (!Environment.NODE_MEMBERS && !this.gameMap.isFreeToPlay(player.x, player.z)) {
                     // in a p2p zone when logging into f2p
-                    if(player.members) {
+                    if (player.members) {
                         client.send(Uint8Array.from([17]));
                         client.close();
                         this.loginThread.postMessage({

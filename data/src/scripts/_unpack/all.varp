@@ -377,3 +377,16 @@ scope=perm
 
 [ring_of_forging]
 scope=perm
+
+
+[total_runners]
+scope=perm
+
+[initial_runners]
+scope=perm
+
+[runners_killed]
+scope=perm
+
+[runners_spawned]
+scope=perm

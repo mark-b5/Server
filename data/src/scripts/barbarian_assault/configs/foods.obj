@@ -1,0 +1,63 @@
+[tofu]
+cost=1
+name=Tofu
+desc=A block of tofu
+model=model_2456_obj
+2dzoom=1020
+2dyan=68
+2dxan=68
+weight=1g
+iop1=Drop
+iop5=Destroy
+tradeable=no
+category=runner_foods
+
+[worms]
+name=Worms
+desc=Some meaty worms.
+model=model_2519_obj
+2dxof=8
+2dyof=11
+2dzoom=990
+2dyan=188
+2dxan=340
+2dxan=404
+weight=1g
+tradeable=no
+iop1=Drop
+iop5=Destroy
+category=runner_foods
+
+[crackers]
+name=Crackers
+model=model_2436_obj
+2dxof=1
+2dyof=-6
+2dzoom=650
+2dyan=1840
+2dxan=236
+desc=Some dry crackers.
+cost=1
+weight=1g
+iop1=Drop
+iop5=Destroy
+tradeable=no
+category=runner_foods
+
+[def_horn]
+model=model_2495_obj
+2dxof=4
+2dyof=-8
+2dzoom=840
+2dyan=132
+2dxan=248
+members=yes
+cost=1
+weight=1g
+name=Defender horn
+desc=A horn to call to others.
+iop1=Tell-tofu
+iop2=Tell-worms
+iop3=Tell-meat
+iop4=Medic
+iop5=Drop

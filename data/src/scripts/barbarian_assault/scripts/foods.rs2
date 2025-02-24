@@ -1,0 +1,23 @@
+[opheld1,tofu]
+inv_dropslot(inv, coord, last_slot, 200);
+sound_synth(put_down, 0, 0);
+
+[opheld5,tofu]
+inv_delslot(inv, last_slot);
+sound_synth(put_down, 0, 0);
+
+[opheld1,crackers]
+inv_dropslot(inv, coord, last_slot, 200);
+sound_synth(put_down, 0, 0);
+
+[opheld5,crackers]
+inv_delslot(inv, last_slot);
+sound_synth(put_down, 0, 0);
+
+[opheld1,worms]
+inv_dropslot(inv, coord, last_slot, 200);
+sound_synth(put_down, 0, 0);
+
+[opheld5,worms]
+inv_delslot(inv, last_slot);
+sound_synth(put_down, 0, 0);
